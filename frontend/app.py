@@ -1,4 +1,5 @@
 import streamlit as st
+from pages import vectorize_ui, search_ui, edit_ui, visualize_ui, prompt_template_ui
 
 st.set_page_config(page_title="AI 데이터 QnA", layout="wide")
 
