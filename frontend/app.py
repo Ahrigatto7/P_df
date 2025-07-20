@@ -1,5 +1,7 @@
 import streamlit as st
+from your_util_module import start_backend_if_needed  # 또는 코드 그대로 붙여넣기
 
+start_backend_if_needed()
 st.set_page_config(page_title="AI 데이터 QnA", layout="wide")
 
 st.sidebar.title("메뉴")
