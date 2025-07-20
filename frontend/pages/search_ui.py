@@ -1,3 +1,5 @@
+import streamlit as st
+
 def render():
     st.header("통합 RAG 검색(QA)")
     question = st.text_input("질문 입력")
