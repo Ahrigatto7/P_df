@@ -1,5 +1,4 @@
 import streamlit as st
-from pages import vectorize_ui, search_ui, edit_ui, visualize_ui, prompt_template_ui
 
 st.set_page_config(page_title="AI 데이터 QnA", layout="wide")
 
@@ -10,17 +9,32 @@ menu = st.sidebar.radio(
 )
 
 if menu == "문서 업로드/벡터화":
-    from pages import vectorize_ui
-    vectorize_ui.render()
+    try:
+        from pages import vectorize_ui
+        vectorize_ui.render()
+    except Exception as e:
+        st.error(f"vectorize_ui 오류: {e}")
 elif menu == "AI 검색(QA)":
-    from pages import search_ui
-    search_ui.render()
+    try:
+        from pages import search_ui
+        search_ui.render()
+    except Exception as e:
+        st.error(f"search_ui 오류: {e}")
 elif menu == "프롬프트 관리":
-    from pages import prompt_template_ui
-    prompt_template_ui.render()
+    try:
+        from pages import prompt_template_ui
+        prompt_template_ui.render()
+    except Exception as e:
+        st.error(f"prompt_template_ui 오류: {e}")
 elif menu == "CRUD/이력":
-    from pages import edit_ui
-    edit_ui.render()
+    try:
+        from pages import edit_ui
+        edit_ui.render()
+    except Exception as e:
+        st.error(f"edit_ui 오류: {e}")
 elif menu == "관계 시각화":
-    from pages import visualize_ui
-    visualize_ui.render()
+    try:
+        from pages import visualize_ui
+        visualize_ui.render()
+    except Exception as e:
+        st.error(f"visualize_ui 오류: {e}")
