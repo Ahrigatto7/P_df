@@ -26,12 +26,6 @@ elif menu == "프롬프트 관리":
         prompt_template_ui.render()
     except Exception as e:
         st.error(f"prompt_template_ui 오류: {e}")
-elif menu == "CRUD/이력":
-    try:
-        from pages import edit_ui
-        edit_ui.render()
-    except Exception as e:
-        st.error(f"edit_ui 오류: {e}")
 elif menu == "관계 시각화":
     try:
         from pages import visualize_ui
