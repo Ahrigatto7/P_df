@@ -96,3 +96,6 @@ Feel free to reach out to us if you have questions, ideas, or simply want to cha
 This repository is under the MIT License. For more information, see the [LICENSE](LICENSE) file.
 
 
+
+## Saju Preprocessing Pipeline
+This repo now includes basic utilities for text cleansing, content classification, keyword extraction, and prompt generation located in the `preprocessing` directory. These scripts help prepare data for GPT-based workflows.
