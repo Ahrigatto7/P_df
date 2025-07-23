@@ -1,6 +1,8 @@
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 
+from .pdf_utils import extract_pdf_text_advanced, split_text_chunks
+
 def vectorize_document(chunks, meta):
     embeddings = OpenAIEmbeddings()
     vectordb = Chroma(persist_directory="./vector_db/chroma_db", embedding_function=embeddings)
@@ -8,20 +10,24 @@ def vectorize_document(chunks, meta):
     vectordb.add_documents(docs)
     return {"msg": "임베딩 완료", "count": len(chunks)}
 
-def vectorize_file(file, doc_type="PDF", meta=None):
+def vectorize_file(file, doc_type: str = "PDF", meta: dict | None = None):
+    """Vectorize an uploaded file and store the embeddings."""
     import tempfile
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        tmp.write(file.read())
-        path = tmp.name
+
+    content = file.read()
+    path = None
     if doc_type == "PDF":
-        from .pdf_utils import extract_pdf_text, split_text
-        text = extract_pdf_text(path)
-        chunks = split_text(text)
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(content)
+            path = tmp.name
+        text = extract_pdf_text_advanced(path)
+        chunks = split_text_chunks(text)
     else:
-        text = file.read().decode()
-        chunks = split_text(text)
+        text = content.decode()
+        chunks = split_text_chunks(text)
+
     meta = meta or {}
-    meta['doc_type'] = doc_type
+    meta["doc_type"] = doc_type
     return vectorize_document(chunks, meta)
 
 def hybrid_search(query, sources=None):

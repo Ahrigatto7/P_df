@@ -1,5 +1,5 @@
 import streamlit as st
-import requests
+from core.vector_ops import hybrid_search
 
 
 def render():
@@ -16,20 +16,8 @@ def render():
             st.warning("질문을 입력해주세요.")
             return
 
-        try:
-            res = requests.post(
-                "http://localhost:8000/search",
-                json={"question": question, "sources": sources},
-            )
-
-            if res.status_code == 200:
-                data = res.json()
-                for doc in data.get("sources", []):
-                    st.markdown(f"**[{doc['doc_type']}]** {doc['title']} : {doc['excerpt']}")
-                st.success("AI 답변: " + data.get("answer", ""))
-            else:
-                st.error(f"❌ 오류 발생: {res.status_code} - {res.text}")
-
-        except requests.exceptions.ConnectionError:
-            st.error("❌ 백엔드 서버에 연결할 수 없습니다. FastAPI 서버가 실행 중인지 확인하세요.")
+        data = hybrid_search(question, sources=sources)
+        for doc in data.get("sources", []):
+            st.markdown(f"**[{doc['doc_type']}]** {doc['title']} : {doc['excerpt']}")
+        st.success("AI 답변: " + data.get("answer", ""))
 

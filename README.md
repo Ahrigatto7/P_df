@@ -1,7 +1,7 @@
 # PDF Chatbot with Custom Data 📄
 
 
-An interactive AI chatbot for querying and discussing the contents of PDF documents using Streamlit and AI language models.
+An interactive AI chatbot for querying and discussing the contents of PDF documents using Streamlit and AI language models. The application runs entirely with Streamlit and does not require a separate FastAPI server.
 
 #
 ## About the Project 🌟
@@ -26,22 +26,16 @@ Before using the chatbot, ensure you have the following installed:
 1. Clone the repository:
 
    ```shell
-   git clone https://github.com/yesbhautik/Talk-with-PDF.git
+   git clone <repository-url>
    ```
 2. Navigate to the project directory:
 
     ```shell
-    cd Talk-with-PDF
+    cd <project-directory>
     ```
 3. Install the required Python packages using pip:
     ```shell
     pip install -r requirements.txt
-    ```
-
-4. Copy .env.example to .env and set your OpenAI & Hugging Face API keys:
-
-    ```shell
-    cp .env.example .env
     ```
 
 ## Usage 📋
@@ -49,7 +43,7 @@ Before using the chatbot, ensure you have the following installed:
 1. Run the chatbot using the following command:
 
     ```shell
-    streamlit run app.py
+    streamlit run frontend/app.py
     ```
 3. The chatbot interface will open in your default web browser 🌐
 4. Upload one or more PDF files for processing 📂

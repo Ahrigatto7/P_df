@@ -30,10 +30,10 @@ def render_eval_ui():
         # ...
     ]
 
-    def search_fn(q: str):
-        import requests
+    from .vector_ops import hybrid_search
 
-        return requests.post("http://localhost:8000/search", json={"question": q}).json()
+    def search_fn(q: str):
+        return hybrid_search(q)
 
     df, acc = evaluate_search(search_fn, test_set)
     st.write(df)
