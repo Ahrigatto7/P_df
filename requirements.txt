@@ -1,15 +1,12 @@
 streamlit
-pymupdf
-python-docx
 pandas
 scikit-learn
-sentence-transformers
-plotly
-jinja2
-weasyprint
-openai>=1.0.0
-langchain
-langchain-community
-langchain-openai
-faiss-gpu
+matplotlib
+openpyxl
 
+# 한국어 자연어처리 (명사 추출용)
+JPype1==1.4.1
+konlpy==0.6.0
+
+# 기본 텍스트 처리
+numpy
