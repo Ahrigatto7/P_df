@@ -7,4 +7,4 @@ sentence-transformers
 plotly
 jinja2
 weasyprint
-openai
+openai>=1.0.0
