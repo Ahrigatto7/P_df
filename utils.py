@@ -1,9 +1,18 @@
-import fitz  # PyMuPDF
+"""Utility functions for extracting text from documents."""
+
 from docx import Document
+from PyPDF2 import PdfReader
 
 def extract_text_from_pdf(file_path):
-    doc = fitz.open(file_path)
-    return " ".join([page.get_text() for page in doc]).strip()
+    """Extract text from a PDF file using PyPDF2."""
+    text = []
+    with open(file_path, "rb") as f:
+        reader = PdfReader(f)
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text.append(page_text)
+    return "\n".join(text).strip()
 
 def extract_text_from_docx(file_path):
     doc = Document(file_path)

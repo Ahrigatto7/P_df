@@ -1,35 +1,67 @@
-
-
-# --- OpenAI 요약 함수 ---
-import openai
-
-def summarize_text_with_openai(text, api_key, model="gpt-3.5-turbo", max_tokens=300):
-    openai.api_key = api_key
-    prompt = f"다음 문서를 한국어로 간결하게 요약해줘:\n\n{text[:2000]}"
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
-    )
-    return response.choices[0].message.content.strip()
-
-# --- GPU 최적화 노트 ---
-# GPU 환경에서 sentence-transformers 모델 자동 GPU 사용 (CUDA)
-from sentence_transformers import SentenceTransformer
-
-def get_embedding_model(model_name='all-MiniLM-L6-v2'):
-    return SentenceTransformer(model_name)  # 자동 GPU 사용됨
-
-# --- HTML + PDF 리포트 자동 생성 ---
-from jinja2 import Template
-from weasyprint import HTML
-import datetime
-import pandas as pd
 import os
+import numpy as np
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer
+from jinja2 import Template
+from utils import extract_text_from_file
+
+
+def load_documents(folder_path):
+    """Load documents from a folder and extract text."""
+    docs = []
+    for fname in sorted(os.listdir(folder_path)):
+        path = os.path.join(folder_path, fname)
+        if os.path.isfile(path):
+            text = extract_text_from_file(path)
+            docs.append({"file": path, "text": text})
+    return docs
+
+
+def get_embedding_model(model_name="all-MiniLM-L6-v2"):
+    """Return a sentence transformer model."""
+    return SentenceTransformer(model_name)
+
+
+def vectorize_documents(docs, model_name="all-MiniLM-L6-v2"):
+    """Vectorize documents using SentenceTransformer."""
+    model = get_embedding_model(model_name)
+    embeddings = model.encode([d["text"] for d in docs])
+    return embeddings
+
+
+def summarize_text(text, num_sentences=2):
+    """Simple TF-IDF based summarization."""
+    sentences = [s.strip() for s in text.replace("\n", " ").split(". ") if s.strip()]
+    if len(sentences) <= num_sentences:
+        return " ".join(sentences)
+    vectorizer = TfidfVectorizer()
+    tfidf = vectorizer.fit_transform(sentences)
+    scores = tfidf.sum(axis=1).A1
+    top_idx = np.argsort(scores)[-num_sentences:][::-1]
+    selected = [sentences[i] for i in sorted(top_idx)]
+    return ". ".join(selected)
+
+
+def cluster_documents(docs, embeddings, n_clusters=4):
+    """Cluster documents and create summaries."""
+    km = KMeans(n_clusters=n_clusters, random_state=42)
+    labels = km.fit_predict(embeddings)
+    for doc, label in zip(docs, labels):
+        doc["cluster"] = int(label)
+        doc["summary"] = summarize_text(doc["text"])
+    summaries = {}
+    for label in sorted(set(labels)):
+        combined = " ".join(d["text"] for d in docs if d["cluster"] == label)
+        summaries[int(label)] = summarize_text(combined)
+    return docs, summaries
+
 
 def generate_html_report(docs, summaries, output_path="cluster_report.html"):
+    """Generate an HTML report for clustered documents."""
     df = pd.DataFrame(docs)
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
 
     html_template = """
     <html>
@@ -71,13 +103,9 @@ def generate_html_report(docs, summaries, output_path="cluster_report.html"):
         clusters=cluster_docs.keys(),
         summaries=summaries,
         docs=cluster_docs,
-        basename=os.path.basename
+        basename=os.path.basename,
     )
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"✅ HTML 리포트 저장 완료: {output_path}")
-
-    # PDF 변환
-    HTML(output_path).write_pdf(output_path.replace(".html", ".pdf"))
-    print(f"📄 PDF 리포트 생성 완료: {output_path.replace('.html', '.pdf')}")
