@@ -1,32 +1,28 @@
+# summarize.py
+import os
+import datetime
+import pandas as pd
+from jinja2 import Template
+from weasyprint import HTML
+from sentence_transformers import SentenceTransformer
+from openai import OpenAI
 
-
-# --- OpenAI 요약 함수 ---
-import openai
-
+# --- OpenAI GPT 요약 함수 (v1 SDK 방식) ---
 def summarize_text_with_openai(text, api_key, model="gpt-3.5-turbo", max_tokens=300):
-    openai.api_key = api_key
+    client = OpenAI(api_key=api_key)
     prompt = f"다음 문서를 한국어로 간결하게 요약해줘:\n\n{text[:2000]}"
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
     )
     return response.choices[0].message.content.strip()
 
-# --- GPU 최적화 노트 ---
-# GPU 환경에서 sentence-transformers 모델 자동 GPU 사용 (CUDA)
-from sentence_transformers import SentenceTransformer
-
+# --- SentenceTransformer 모델 (GPU 사용 가능) ---
 def get_embedding_model(model_name='all-MiniLM-L6-v2'):
-    return SentenceTransformer(model_name)  # 자동 GPU 사용됨
+    return SentenceTransformer(model_name)
 
 # --- HTML + PDF 리포트 자동 생성 ---
-from jinja2 import Template
-from weasyprint import HTML
-import datetime
-import pandas as pd
-import os
-
 def generate_html_report(docs, summaries, output_path="cluster_report.html"):
     df = pd.DataFrame(docs)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -61,9 +57,10 @@ def generate_html_report(docs, summaries, output_path="cluster_report.html"):
     </html>
     """
 
-    cluster_docs = {}
-    for cluster_id in sorted(df["cluster"].unique()):
-        cluster_docs[cluster_id] = df[df["cluster"] == cluster_id].to_dict("records")
+    cluster_docs = {
+        cluster_id: df[df["cluster"] == cluster_id].to_dict("records")
+        for cluster_id in sorted(df["cluster"].unique())
+    }
 
     template = Template(html_template)
     html_content = template.render(
@@ -71,13 +68,12 @@ def generate_html_report(docs, summaries, output_path="cluster_report.html"):
         clusters=cluster_docs.keys(),
         summaries=summaries,
         docs=cluster_docs,
-        basename=os.path.basename
+        basename=os.path.basename,
     )
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"✅ HTML 리포트 저장 완료: {output_path}")
 
-    # PDF 변환
     HTML(output_path).write_pdf(output_path.replace(".html", ".pdf"))
     print(f"📄 PDF 리포트 생성 완료: {output_path.replace('.html', '.pdf')}")
