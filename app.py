@@ -68,3 +68,36 @@ if st.button("질문 실행") and question:
         st.write(response)
     except Exception as e:
         st.error(f"❌ 오류 발생: {e}")
+
+# ========================
+# 📊 추가 기능: 키워드 DB화, 클러스터링, HTML 리포트 생성
+# ========================
+from ingest_documents import ingest_all_documents
+from visualize_clusters import run_clustering
+from generate_html_report import generate_html_report
+
+st.markdown("---")
+st.subheader("📊 문서 클러스터링 및 리포트 자동화")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button("📂 문서 DB 저장 (키워드 추출)"):
+        ingest_all_documents()
+        st.success("✅ 문서 및 키워드가 DB에 저장되었습니다.")
+
+with col2:
+    if st.button("🧠 문서 클러스터링 수행"):
+        run_clustering(output_csv="clustered_output.csv")
+        st.success("✅ KMeans 클러스터링 완료 (CSV 저장됨)")
+
+with col3:
+    if st.button("📝 HTML 리포트 생성"):
+        generate_html_report(csv_path="clustered_output.csv")
+        st.success("✅ HTML 리포트 생성 완료: cluster_report.html")
+
+# 클러스터 결과 미리보기
+if os.path.exists("clustered_output.csv"):
+    st.markdown("### 📄 클러스터링 결과 미리보기")
+    df = pd.read_csv("clustered_output.csv")
+    st.dataframe(df[['filename', 'cluster']])
