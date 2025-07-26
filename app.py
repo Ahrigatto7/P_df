@@ -75,6 +75,7 @@ if st.button("질문 실행") and question:
 from ingest_documents import ingest_all_documents
 from visualize_clusters import run_clustering
 from generate_html_report import generate_html_report
+from db_utils import fetch_all_cases, fetch_case_by_id
 
 st.markdown("---")
 st.subheader("📊 문서 클러스터링 및 리포트 자동화")
@@ -101,3 +102,35 @@ if os.path.exists("clustered_output.csv"):
     st.markdown("### 📄 클러스터링 결과 미리보기")
     df = pd.read_csv("clustered_output.csv")
     st.dataframe(df[['filename', 'cluster']])
+
+# ========================
+# 📚 저장된 사주 사례 분석 보기
+# ========================
+st.markdown("---")
+st.subheader("📚 사주 사례 분석 보기")
+
+cases_df = fetch_all_cases()
+
+if cases_df.empty:
+    st.info("DB에 등록된 사례가 없습니다. 먼저 데이터를 입력하세요.")
+else:
+    search_term = st.text_input("제목 또는 해석 검색", "")
+    filtered_df = cases_df[
+        cases_df["title"].str.contains(search_term, na=False)
+        | cases_df["explanation"].str.contains(search_term, na=False)
+    ]
+    st.dataframe(filtered_df[["id", "title", "yongshin"]])
+
+    selected_id = st.selectbox("상세 분석 볼 사례 선택", filtered_df["id"])
+
+    if selected_id:
+        case = fetch_case_by_id(int(selected_id))
+        if case:
+            st.markdown(f"### 🔍 {case['title']}")
+            st.markdown(
+                f"- **천간:** {case['heavenly_stems']}\n"
+                f"- **지지:** {case['earthly_branches']}\n"
+                f"- **오행:** {case['five_elements']}\n"
+                f"- **용신:** {case['yongshin']}"
+            )
+            st.write(case["explanation"])
